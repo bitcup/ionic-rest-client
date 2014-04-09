@@ -1,10 +1,18 @@
 <ion-view title="Dashboard">
     <ion-content class="has-header padding">
         <!--<h1>Dash</h1>-->
-        <ion-list>
-            <ion-item ng-repeat="f in foos" type="item-text-wrap">
-                {{f.bar}}
-            </ion-item>
-        </ion-list>
+
+        <div ng-show="isLoggedIn">
+            <ion-list>
+                <ion-item ng-repeat="f in foos" type="item-text-wrap">
+                    {{f.bar}}
+                </ion-item>
+            </ion-list>
+        </div>
+
+        <div ng-show="!isLoggedIn">
+            You need to login
+        </div>
+
     </ion-content>
 </ion-view>

@@ -3,7 +3,7 @@ angular.module('starter.services', ['ngResource'])
     // interceptor to add Authorization header for all requests - calculates HMAC via RequestSigner
     // note: also, for this to work, the server needs to accept Authorization header
     // -- see 'Access-Control-Allow-Headers' in CorsFilter
-    .factory('hmacInterceptor', function ($q, $log, RequestSigner, CredentialsHolder) {
+    .factory('hmacInterceptor', function ($q, $log, RequestSigner, CredentialsHolder, API_HOST) {
         return {
             'request': function (config) {
                 // add authorization header to remote requests only
@@ -25,10 +25,10 @@ angular.module('starter.services', ['ngResource'])
                 // redirect to login view on 401
                 $log.info("http interceptor caught a response error with status=" + rejection.status);
                 if (rejection.status == 401) {
-                    if (rejection.config.url != 'http://localhost:8080/login') {
+                    if (rejection.config.url != API_HOST + '/login') {
                         $log.info("redirecting to login...");
-                        //$log.info(JSON.stringify(rejection));
-                        window.location = '#/tab/account';
+                        $state.go('tab.account');
+                        //window.location = '#/tab/account';
                     }
                 }
                 return $q.reject(rejection);
@@ -42,8 +42,8 @@ angular.module('starter.services', ['ngResource'])
     })
 
     // demonstrates signing remote requests via interceptor
-    .factory('FSvc', ['$resource', function ($resource) {
-        return $resource('http://localhost:port/api/v1.0/foo/list', {port: ":8080"}, {
+    .factory('FSvc', ['$resource', 'API_HOST', function ($resource, API_HOST) {
+        return $resource(API_HOST + '/api/v1.0/foo/list', {}, {
             queryAll: {method: 'GET', isArray: true}
         });
     }])
@@ -81,29 +81,68 @@ angular.module('starter.services', ['ngResource'])
                 $log.info('reset userId and privateKey');
                 window.localStorage.removeItem("ionic.client.userId");
                 window.localStorage.removeItem("ionic.client.privateKey");
+            },
+            isLoggedIn: function () {
+                $log.info('checking if user is logged in...');
+                var userId = window.localStorage.getItem("ionic.client.userId");
+                $log.info('userId: ' + userId);
+                return userId != null;
             }
         }
     }])
 
     // service to make login/logout requests to remote server
-    .factory('AuthenticationService', ['$http', '$log', 'CredentialsHolder', function ($http, $log, CredentialsHolder) {
+    .factory('AuthenticationService', ['$http', '$log', '$state', 'CredentialsHolder', 'API_HOST',
+        function ($http, $log, $state, CredentialsHolder, API_HOST) {
         return {
             login: function (user) {
                 // THIS SHOULD BE HTTPS because privateKey should not be exposed over http
-                $http.post('http://localhost:8080/login', user).success(function (data) {
+                $http.post(API_HOST + '/login', user).success(function (data) {
                     CredentialsHolder.setCredentials(data.userId, data.privateKey);
-                    window.location = '#/tab/dash';
+                    $state.go('tab.dash');
                 }).error(function (data) {
-                        //$log.info('in AuthenticationService, there was an error in login');
+                        $log.info('in AuthenticationService, there was an error in login');
                     }
                 );
             },
             logout: function () {
                 $log.info('user logged out');
                 CredentialsHolder.resetCredentials();
-                window.location = '#/tab/dash';
+                $state.go('tab.dash');
             }
         }
     }])
+
+    .factory('LoaderService', function ($rootScope, $ionicLoading) {
+
+        // Trigger the loading indicator
+        return {
+            show: function () { //code from the ionic framework doc
+
+                // Show the loading overlay and text
+                $rootScope.loading = $ionicLoading.show({
+
+                    // The text to display in the loading indicator
+                    content: 'Loading',
+
+                    // The animation to use
+                    animation: 'fade-in',
+
+                    // Will a dark overlay or backdrop cover the entire view
+                    showBackdrop: true,
+
+                    // The maximum width of the loading indicator
+                    // Text will be wrapped if longer than maxWidth
+                    maxWidth: 200,
+
+                    // The delay in showing the indicator
+                    showDelay: 5
+                });
+            },
+            hide: function () {
+                $rootScope.loading.hide();
+            }
+        }
+    })
 
 ;

@@ -56,5 +56,9 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
         // if none of the above states are matched, use this as the fallback
         $urlRouterProvider.otherwise('/tab/dash');
 
-    });
+    })
+
+    .constant('API_HOST', 'http://localhost:8080')
+    //.constant('API_HOST', 'http://serene-bayou-3861.herokuapp.com')
+;
 
