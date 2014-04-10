@@ -20,15 +20,9 @@ angular.module('starter.services', ['ngResource'])
                     }
                 }
                 return config || $q.when(config);
-            }, 'responseError': function (rejection) {
-                // redirect to login view on 401
+            },
+            'responseError': function (rejection) {
                 $log.debug("http interceptor caught a response error with status=" + rejection.status);
-                /*
-                 if (rejection.status == 401) {
-                 $log.debug("redirecting to login...");
-                 window.location = '#/login';
-                 }
-                 */
                 return $q.reject(rejection);
             }
         };
@@ -102,16 +96,38 @@ angular.module('starter.services', ['ngResource'])
                             LoaderService.hide();
                             $state.go('tab.dash');
                         })
-                        .error(function (data) {
-                            $log.debug('in AuthenticationService, there was an error in login');
-                            setTimeout(function () {
-                                $ionicPopup.alert({
-                                    title: 'Error',
-                                    content: 'Incorrect username or password'
-                                }).then(function (res) {
-                                        LoaderService.hide();
-                                    });
-                            }, 100);
+                        .error(function (data, status, headers, config) {
+                            $log.debug('in AuthenticationService, there was an error in login - status: ' + status);
+                            if (status == 401) {
+                                setTimeout(function () {
+                                    $ionicPopup.alert({
+                                        title: 'Error',
+                                        content: 'Incorrect username or password'
+                                    }).then(function (res) {
+                                            LoaderService.hide();
+                                        });
+                                }, 100);
+                            }
+                            else if (status == 404) {
+                                setTimeout(function () {
+                                    $ionicPopup.alert({
+                                        title: 'Could not reach server',
+                                        content: 'Please try again later'
+                                    }).then(function (res) {
+                                            LoaderService.hide();
+                                        });
+                                }, 100);
+                            }
+                            else {
+                                setTimeout(function () {
+                                    $ionicPopup.alert({
+                                        title: 'Error',
+                                        content: 'Please try again later'
+                                    }).then(function (res) {
+                                            LoaderService.hide();
+                                        });
+                                }, 100);
+                            }
                         });
                 },
                 logout: function () {
