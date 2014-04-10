@@ -20,16 +20,15 @@ angular.module('starter.services', ['ngResource'])
                     }
                 }
                 return config || $q.when(config);
-            }
-            ,'responseError': function (rejection) {
+            }, 'responseError': function (rejection) {
                 // redirect to login view on 401
                 $log.debug("http interceptor caught a response error with status=" + rejection.status);
                 /*
-                if (rejection.status == 401) {
-                    $log.debug("redirecting to login...");
-                    window.location = '#/login';
-                }
-                */
+                 if (rejection.status == 401) {
+                 $log.debug("redirecting to login...");
+                 window.location = '#/login';
+                 }
+                 */
                 return $q.reject(rejection);
             }
         };
@@ -91,18 +90,29 @@ angular.module('starter.services', ['ngResource'])
     }])
 
     // service to make login/logout requests to remote server
-    .factory('AuthenticationService', ['$http', '$log', '$state', 'CredentialsHolder', 'API_HOST',
-        function ($http, $log, $state, CredentialsHolder, API_HOST) {
+    .factory('AuthenticationService', ['$http', '$log', '$state', '$ionicPopup', 'CredentialsHolder', 'API_HOST', 'LoaderService',
+        function ($http, $log, $state, $ionicPopup, CredentialsHolder, API_HOST, LoaderService) {
             return {
                 login: function (user) {
+                    LoaderService.show(100);
                     // THIS SHOULD BE HTTPS because privateKey should not be exposed over http
-                    $http.post(API_HOST + '/login', user).success(function (data) {
-                        CredentialsHolder.setCredentials(data.userId, data.privateKey);
-                        $state.go('tab.dash');
-                    }).error(function (data) {
+                    $http.post(API_HOST + '/login', user)
+                        .success(function (data) {
+                            CredentialsHolder.setCredentials(data.userId, data.privateKey);
+                            LoaderService.hide();
+                            $state.go('tab.dash');
+                        })
+                        .error(function (data) {
                             $log.debug('in AuthenticationService, there was an error in login');
-                        }
-                    );
+                            setTimeout(function () {
+                                $ionicPopup.alert({
+                                    title: 'Error',
+                                    content: 'Incorrect username or password'
+                                }).then(function (res) {
+                                        LoaderService.hide();
+                                    });
+                            }, 100);
+                        });
                 },
                 logout: function () {
                     $log.debug('user logged out');
@@ -115,13 +125,13 @@ angular.module('starter.services', ['ngResource'])
     // trigger the loading indicator
     .factory('LoaderService', function ($rootScope, $ionicLoading) {
         return {
-            show: function () {
+            show: function (delay) {
                 $rootScope.loading = $ionicLoading.show({
-                    content: 'Loading',
+                    content: '<h1><i class="icon ion-ios7-reloading"></i></h1>',
                     animation: 'fade-in',
                     showBackdrop: true,
                     maxWidth: 200,
-                    showDelay: 5
+                    showDelay: delay > 0 ? delay : 0
                 });
             },
             hide: function () {
@@ -131,3 +141,7 @@ angular.module('starter.services', ['ngResource'])
     })
 
 ;
+
+var errorPopup = function ($ionicPopup, text) {
+
+};

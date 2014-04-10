@@ -16,9 +16,7 @@ angular.module('starter.controllers', [])
         };
     })
 
-    .controller('LoginCtrl', function ($scope, AuthenticationService, LoaderService) {
-        $scope.message = '';
-
+    .controller('LoginCtrl', function ($scope, AuthenticationService) {
         $scope.user = {
             username: null,
             password: null
@@ -28,9 +26,7 @@ angular.module('starter.controllers', [])
             if (!$scope.user.username || !$scope.user.password) {
                 return;
             }
-            LoaderService.show();
             AuthenticationService.login($scope.user);
-            LoaderService.hide();
         };
     })
 
