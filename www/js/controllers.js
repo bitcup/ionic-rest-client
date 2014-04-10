@@ -1,15 +1,22 @@
 angular.module('starter.controllers', [])
 
     .controller('DashCtrl', function ($scope, $state, FSvc, CredentialsHolder) {
-        $scope.isLoggedIn = CredentialsHolder.isLoggedIn();
-        if ($scope.isLoggedIn) {
-            $scope.foos = FSvc.queryAll();
-        } else {
-            $state.go('tab.account');
+        if (!CredentialsHolder.isLoggedIn()) {
+            $state.go('login');
         }
+        $scope.foos = FSvc.queryAll();
     })
 
-    .controller('AccountCtrl', function ($scope, AuthenticationService, CredentialsHolder, LoaderService) {
+    .controller('AccountCtrl', function ($scope, $state, CredentialsHolder, AuthenticationService) {
+        if (!CredentialsHolder.isLoggedIn()) {
+            $state.go('login');
+        }
+        $scope.signOut = function () {
+            AuthenticationService.logout();
+        };
+    })
+
+    .controller('LoginCtrl', function ($scope, AuthenticationService, LoaderService) {
         $scope.message = '';
 
         $scope.user = {
@@ -17,18 +24,14 @@ angular.module('starter.controllers', [])
             password: null
         };
 
-        $scope.showLogout = CredentialsHolder.isLoggedIn();
-
-        $scope.signIn = function() {
-            if(!$scope.user.username || !$scope.user.password) {
+        $scope.logIn = function () {
+            if (!$scope.user.username || !$scope.user.password) {
                 return;
             }
             LoaderService.show();
             AuthenticationService.login($scope.user);
             LoaderService.hide();
         };
+    })
 
-        $scope.signOut = function() {
-            AuthenticationService.logout();
-        };
-    });
+;
